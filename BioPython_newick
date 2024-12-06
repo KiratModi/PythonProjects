@@ -1,0 +1,62 @@
+from Bio import Phylo
+from io import StringIO
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+
+# Newick tree data
+newick_tree = """
+(
+tr|B5X1K8|B5X1K8_SALSA:0.03379,
+(
+  tr|C3KIQ6|C3KIQ6_ANOFI:0.01527,
+  tr|C1BG41|C1BG41_ONCMY:0.01380)
+:0.02145,
+(
+  tr|A0A8C2E700|A0A8C2E700_CYPCA:0.24095,
+  tr|Q9IB37|Q9IB37_THUTH:0.16781)
+:0.28017);
+"""
+
+# Parse the tree
+tree = Phylo.read(StringIO(newick_tree), "newick")
+
+# Set up the figure
+fig = plt.figure(figsize=(12, 8))
+ax = fig.add_subplot(1, 1, 1)
+
+# Custom function to avoid overlap for specific branches
+def custom_branch_label(clade):
+    if clade.branch_length and not (
+        clade.branch_length == 0.02145  # Omit the number causing overlap
+    ):
+        return f"{clade.branch_length:.3f}"
+    return ""
+
+# Draw the tree with adjusted branch labels
+Phylo.draw(tree, axes=ax, branch_labels=custom_branch_label)
+
+# Add annotations pointing to specific taxa (samples)
+ax.annotate("Salmo salar", xy=(0.03, 5.5), xytext=(0.1, 6),
+            arrowprops=dict(facecolor='blue', arrowstyle="->"), fontsize=12, color='blue')
+ax.annotate("Cyprinus carpio", xy=(0.55, 1.5), xytext=(0.6, 2.5),
+            arrowprops=dict(facecolor='green', arrowstyle="->"), fontsize=12, color='green')
+
+# Add a legend to explain the branch labels and annotations
+legend_elements = [
+    Line2D([0], [0], color='black', lw=1, label='Branch Length'),
+    Line2D([0], [0], marker='o', color='white', markerfacecolor='blue', markersize=10, label='Salmo salar'),
+    Line2D([0], [0], marker='o', color='white', markerfacecolor='green', markersize=10, label='Cyprinus carpio')
+]
+ax.legend(handles=legend_elements, loc='upper left', fontsize=10, title="Legend")
+
+# Add your name in the bottom-right corner
+plt.text(1.05, -0.1, "By: Kirat_Modi_#640326", fontsize=12, ha='right', va='center', transform=ax.transAxes)
+
+# Add axis labels and title
+ax.set_title("Phylogenetic Tree of Myosin Light Chain 2", fontsize=16, fontweight='bold')
+ax.set_xlabel("Branch Length (Evolutionary Distance)", fontsize=12)
+ax.set_ylabel("Samples", fontsize=12)  
+
+# Show the plot
+plt.tight_layout()
+plt.show()
